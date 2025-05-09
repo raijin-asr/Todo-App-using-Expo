@@ -1,8 +1,9 @@
-import { FlatList, Image, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, KeyboardAvoidingView, StyleSheet, Keyboard ,Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {Ionicons} from '@expo/vector-icons';
 import { Checkbox } from 'expo-checkbox';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // custom types for todo items
 type TodoType = {
@@ -36,19 +37,55 @@ export default function Index() {
     },
   ];
 
-  const [todos, setTodos] = useState<TodoType[]>(todoData);
+  const [todos, setTodos] = useState<TodoType[]>([]);
   const [todoText, setTodoText] = useState<string>("");
 
-  // Function to add a new todo item
-  const addTodo = () => {
-    const newTodo = {
-      id: todos.length + 1,
-      title: todoText,
-      isDone: false,
+  //check if any data in async storage
+  useEffect(() => {
+    const getTodos = async () => { //defining the function to get data
+      try {
+        const storedTodos = await AsyncStorage.getItem("my-todo");
+        if (storedTodos !== null) {
+          setTodos(JSON.parse(storedTodos));
+        } else { //if no data in async storage 
+          setTodos(todoData); //set the default data
+          await AsyncStorage.setItem("my-todo", JSON.stringify(todoData)); //store the default data in async storage
+        }
+      } catch (error) {
+        console.log(error);
+      }
     };
-    todos.push(newTodo);
-    setTodos(todos);
-    setTodoText("");
+    getTodos(); //calling the function
+  }, []);
+
+  // Function to delete a todo item
+  const deleteTodo = async (id: number) => {
+    try {
+      const updatedTodos = todos.filter((todo) => todo.id !== id); // filter out the todo with the given id
+      setTodos(updatedTodos); // update the state 
+      await AsyncStorage.setItem("my-todo", JSON.stringify(updatedTodos)); // update the async storage
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+
+  // Function to add a new todo item
+  const addTodo = async () => {
+    try {
+      const newTodo = {
+        id: Math.random(),
+        title: todoText,
+        isDone: false,
+      };
+      todos.push(newTodo);
+      setTodos(todos);
+      await AsyncStorage.setItem("my-todo", JSON.stringify(todos));
+      setTodoText("");
+      Keyboard.dismiss();
+    } catch(error){
+      console.log(error);
+    }
   }
   
   return (
@@ -71,9 +108,9 @@ export default function Index() {
       </View>
       <FlatList data={[...todos].reverse()} keyExtractor={(item) => item.id.toString()} 
       renderItem={({item}) => (
-        <TodoItem todo={item} />
+        <TodoItem todo={item} deleteTodo={deleteTodo} />
       )} />
-
+ 
       <KeyboardAvoidingView style={styles.addTodoContainer} behavior="padding" keyboardVerticalOffset={15}>
         <TextInput 
           placeholder="Add New Todo Task"
@@ -91,7 +128,7 @@ export default function Index() {
 }
 
 //separate component for todo item
-const TodoItem = ({todo}: {todo: TodoType}) => {
+const TodoItem = ({todo, deleteTodo}: {todo: TodoType, deleteTodo: (id: number)=> void}) => {
   return (
     <View style={styles.todoContainer}>
           <View style={styles.todoItem}>
@@ -106,7 +143,9 @@ const TodoItem = ({todo}: {todo: TodoType}) => {
           </View>
           <View>
             <TouchableOpacity 
-              onPress={() => {alert("Deleted "+ todo.title)}}
+              onPress={() => {
+                deleteTodo(todo.id);
+                alert("Deleted "+ todo.title)}}
             >
             <Ionicons name="trash" size={24} color={'red'}/>
             </TouchableOpacity>
