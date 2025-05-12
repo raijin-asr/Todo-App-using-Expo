@@ -1,4 +1,4 @@
-import { FlatList, Image, KeyboardAvoidingView, StyleSheet, Keyboard ,Text, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, KeyboardAvoidingView, StyleSheet, Keyboard ,Text, TextInput, TouchableOpacity, View, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {Ionicons} from '@expo/vector-icons';
 import { Checkbox } from 'expo-checkbox';
@@ -39,6 +39,8 @@ export default function Index() {
 
   const [todos, setTodos] = useState<TodoType[]>([]);
   const [todoText, setTodoText] = useState<string>("");
+  const [searchTodo, setSearchTodo] = useState<string>("");
+  const [oldTodos, setOldTodos] = useState<TodoType[]>([]);
 
   //check if any data in async storage
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function Index() {
         const storedTodos = await AsyncStorage.getItem("my-todo");
         if (storedTodos !== null) {
           setTodos(JSON.parse(storedTodos));
+          setOldTodos(JSON.parse(storedTodos));
         } else { //if no data in async storage 
           setTodos(todoData); //set the default data
           await AsyncStorage.setItem("my-todo", JSON.stringify(todoData)); //store the default data in async storage
@@ -57,17 +60,6 @@ export default function Index() {
     };
     getTodos(); //calling the function
   }, []);
-
-  // Function to delete a todo item
-  const deleteTodo = async (id: number) => {
-    try {
-      const updatedTodos = todos.filter((todo) => todo.id !== id); // filter out the todo with the given id
-      setTodos(updatedTodos); // update the state 
-      await AsyncStorage.setItem("my-todo", JSON.stringify(updatedTodos)); // update the async storage
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
 
   // Function to add a new todo item
@@ -80,6 +72,7 @@ export default function Index() {
       };
       todos.push(newTodo);
       setTodos(todos);
+      setOldTodos(todos);
       await AsyncStorage.setItem("my-todo", JSON.stringify(todos));
       setTodoText("");
       Keyboard.dismiss();
@@ -87,7 +80,53 @@ export default function Index() {
       console.log(error);
     }
   }
-  
+
+  // Function to delete a todo item
+  const deleteTodo = async (id: number) => {
+    try {
+      const updatedTodos = todos.filter((todo) => todo.id !== id); // filter out the todo with the given id
+      setTodos(updatedTodos); // update the state 
+      setOldTodos(updatedTodos);
+      await AsyncStorage.setItem("my-todo", JSON.stringify(updatedTodos)); // update the async storage
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  //Function to handle checked and Done todo item
+  const handleDone = async (id: number )=> {
+    try{
+      const newTodos= todos.map( (todo) => {
+          if (todo.id === id){
+            todo.isDone = !todo.isDone; //toggle done and not done
+          }
+          return todo;
+        }
+      );
+      await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos)); // update the async storage
+      setTodos(newTodos);
+      setOldTodos(newTodos);
+    } catch(error){
+      console.log(error);
+    }
+  }
+
+  const handleSearch = (searchText: string) => {
+    if(searchText == ''){
+      setTodos(oldTodos);
+    }
+    else{
+      const filteredTodos= todos.filter( (todo) => 
+        todo.title.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setTodos(filteredTodos);
+    }
+  };
+
+  useEffect( ()=> {
+    handleSearch(searchTodo);
+  }, [searchTodo]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -103,12 +142,18 @@ export default function Index() {
         <TextInput  
           style={styles.searchInput} 
           placeholder="Search" 
+          value={searchTodo}
+          onChangeText={ (text)=> setSearchTodo(text)}
           clearButtonMode="always"
         />
       </View>
       <FlatList data={[...todos].reverse()} keyExtractor={(item) => item.id.toString()} 
       renderItem={({item}) => (
-        <TodoItem todo={item} deleteTodo={deleteTodo} />
+        <TodoItem 
+          todo={item} 
+          deleteTodo={deleteTodo} 
+          handleDone={handleDone} 
+        />
       )} />
  
       <KeyboardAvoidingView style={styles.addTodoContainer} behavior="padding" keyboardVerticalOffset={15}>
@@ -128,12 +173,21 @@ export default function Index() {
 }
 
 //separate component for todo item
-const TodoItem = ({todo, deleteTodo}: {todo: TodoType, deleteTodo: (id: number)=> void}) => {
+const TodoItem = ({
+  todo, 
+  deleteTodo,
+  handleDone
+}: {
+    todo: TodoType; 
+    deleteTodo: (id: number)=> void;
+    handleDone: (id: number)=> void;
+  }) => {
   return (
     <View style={styles.todoContainer}>
           <View style={styles.todoItem}>
             <Checkbox
               value={todo.isDone}
+              onValueChange={ () => handleDone(todo.id)}
               color={todo.isDone ? 'green' : undefined}
               />
             <Text 
@@ -172,7 +226,8 @@ searchBar:{
   backgroundColor: 'white',
   flexDirection: 'row',
   alignItems: 'center',
-  padding: 10,
+  paddingHorizontal:10,
+  paddingVertical: Platform.OS =='ios'? 12: 10,
   borderRadius: 10,
   marginBottom: 20,
   gap: 10,

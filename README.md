@@ -8,3 +8,4 @@ Todo App using Expo in React Native
     Day 2: Design header, menu and searchBar and styled them
     Day 3: Create Add button, input form, todo item FlatList and Add todo functionality
     Day 4: Implement Async Storage to load, save and delete todo item
+    Day 5: Add functionality to handle Done todo item and search todo
