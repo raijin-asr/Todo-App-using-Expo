@@ -2,7 +2,7 @@ import { FlatList, Image, KeyboardAvoidingView, StyleSheet, Keyboard, Text, Text
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
 import { Checkbox } from 'expo-checkbox';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; // Import useRef
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // custom types for todo items
@@ -43,6 +43,8 @@ export default function Index() {
   const [oldTodos, setOldTodos] = useState<TodoType[]>([]);
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [todoToEdit, setTodoToEdit] = useState<TodoType | null>(null);
+  const [isSearchActive, setIsSearchActive] = useState(false); // State to toggle search input
+  const searchInputRef = useRef<TextInput>(null); // Create a ref for the TextInput
 
   //check if any data in async storage
   useEffect(() => {
@@ -158,19 +160,37 @@ export default function Index() {
         <TouchableOpacity onPress={() => { alert("Menu Clicked!") }}>
           <Ionicons name="menu" size={24} color={'black'} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => { alert("Photo Clicked!") }}>
-          <Image source={require('../assets/images/ameer.jpeg')} style={{ width: 40, height: 40, borderRadius: 20 }} />
-        </TouchableOpacity>
+        <View style={styles.searchProfileContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              setIsSearchActive(!isSearchActive);
+              if (!isSearchActive) {
+                setTimeout(() => searchInputRef.current?.focus(), 0); // Focus the TextInput after toggling
+              }
+            }}
+          >
+            <Ionicons name="search" size={24} color={'grey'} />
+          </TouchableOpacity>
+          {isSearchActive && (
+            <TextInput
+              ref={searchInputRef} // Attach the ref to the TextInput
+              style={styles.searchInput}
+              placeholder="Search"
+              value={searchTodo}
+              onChangeText={(text) => setSearchTodo(text)}
+              clearButtonMode="always"
+              onBlur={() => setIsSearchActive(false)} // Hide input when focus is lost
+            />
+          )}
+          <TouchableOpacity onPress={() => { alert("Photo Clicked!") }}>
+            <Image source={require('../assets/images/ameer.jpeg')} style={styles.imgProfile} />
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.searchBar}>
-        <Ionicons name="search" size={24} color={'black'} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          value={searchTodo}
-          onChangeText={(text) => setSearchTodo(text)}
-          clearButtonMode="always"
-        />
+    
+    
+        <View style={styles.recentTaskContainer}>
+        <Text style={styles.recentTaskText}> Recent Task</Text>
       </View>
       <FlatList data={[...todos].reverse()} keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
@@ -189,6 +209,9 @@ export default function Index() {
           onChangeText={(text) => setTodoText(text)}
           style={styles.addInput}
           autoCorrect={false}
+          multiline={true} // Enable multi-line input
+          numberOfLines={4} // Suggest an initial number of lines
+          textAlignVertical="top" // Start text from the top
         />
         <TouchableOpacity style={styles.addButton} onPress={() => addTodo()}>
           <Ionicons name="add" size={32} color={'white'} />
@@ -287,19 +310,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 15,
   },
-  searchBar: {
-    backgroundColor: 'white',
+  
+  searchProfileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: Platform.OS == 'ios' ? 12 : 10,
     borderRadius: 10,
-    marginBottom: 20,
     gap: 10,
   },
   searchInput: {
-    flex: 1,
     fontSize: 16,
+    color: 'black',
+    width: 200
+  },
+  imgProfile:{
+    width: 40, 
+    height: 40, 
+    borderRadius: 20
+  },
+   recentTaskContainer: {
+    marginBottom: 15,
+  },
+  recentTaskText: {
+    fontSize: 18,
+    fontWeight: 'bold',
     color: 'black',
   },
   todoContainer: {
@@ -314,6 +349,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    width:220
   },
   todoText: {
     fontSize: 16,
@@ -323,8 +359,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
-
+    marginBottom: 14,
   },
   addInput: {
     flex: 1,
@@ -333,6 +368,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     backgroundColor: 'white',
+    borderColor: "black",
+    borderWidth:1
   },
   addButton: {
     backgroundColor: 'green',

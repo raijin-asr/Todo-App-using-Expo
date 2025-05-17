@@ -10,3 +10,4 @@ Todo App using Expo in React Native
     Day 4: Implement Async Storage to load, save and delete todo item
     Day 5: Add functionality to handle Done todo item and search todo
     Day 6: Add Edit operation using modal popup
+    Day 7: Add recent task, resized todo item width, and add input field
