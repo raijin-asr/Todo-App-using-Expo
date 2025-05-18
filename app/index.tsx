@@ -1,9 +1,10 @@
-import { FlatList, Image, KeyboardAvoidingView, StyleSheet, Keyboard, Text, TextInput, TouchableOpacity, View, Platform, Modal } from "react-native";
+import { FlatList, Image, KeyboardAvoidingView, StyleSheet, Keyboard, Text, TextInput, TouchableOpacity, View, Platform, Modal, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
 import { Checkbox } from 'expo-checkbox';
 import { useEffect, useState, useRef } from "react"; // Import useRef
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { memo } from 'react'; // Import memo for optimization
 
 // custom types for todo items
 type TodoType = {
@@ -38,13 +39,16 @@ export default function Index() {
   ];
 
   const [todos, setTodos] = useState<TodoType[]>([]);
+  const [completedTodos, setCompletedTodos] = useState<TodoType[]>([]); // State for completed todos
   const [todoText, setTodoText] = useState<string>("");
   const [searchTodo, setSearchTodo] = useState<string>("");
   const [oldTodos, setOldTodos] = useState<TodoType[]>([]);
+  const [completedTodosBackup, setCompletedTodosBackup] = useState<TodoType[]>([]); // Backup for completed todos
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [todoToEdit, setTodoToEdit] = useState<TodoType | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false); // State to toggle search input
   const searchInputRef = useRef<TextInput>(null); // Create a ref for the TextInput
+  const [isCompletedExpanded, setIsCompletedExpanded] = useState(false); // State to toggle Completed section
 
   //check if any data in async storage
   useEffect(() => {
@@ -63,6 +67,23 @@ export default function Index() {
       }
     };
     getTodos(); //calling the function
+  }, []);
+
+  // Load completed todos from AsyncStorage
+  useEffect(() => {
+    const getCompletedTodos = async () => {
+      try {
+        const storedCompletedTodos = await AsyncStorage.getItem("completed-todo");
+        if (storedCompletedTodos !== null) {
+          const parsedCompletedTodos = JSON.parse(storedCompletedTodos);
+          setCompletedTodos(parsedCompletedTodos);
+          setCompletedTodosBackup(parsedCompletedTodos);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getCompletedTodos();
   }, []);
 
   // Function to add a new todo item
@@ -84,13 +105,35 @@ export default function Index() {
     }
   }
 
-  // Function to delete a todo item
-  const deleteTodo = async (id: number) => {
+  // Update the deleteTodo function to include a confirmation alert
+  const deleteTodo = async (id: number, isCompleted: boolean) => {
     try {
-      const updatedTodos = todos.filter((todo) => todo.id !== id); // filter out the todo with the given id
-      setTodos(updatedTodos); // update the state 
-      setOldTodos(updatedTodos);
-      await AsyncStorage.setItem("my-todo", JSON.stringify(updatedTodos)); // update the async storage
+      Alert.alert(
+        'Confirm Delete',
+        'Are you sure you want to delete this task?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'OK',
+            onPress: async () => {
+              if (isCompleted) {
+                const updatedCompleted = completedTodos.filter((todo) => todo.id !== id);
+                setCompletedTodos(updatedCompleted);
+                setCompletedTodosBackup(updatedCompleted);
+                await AsyncStorage.setItem('completed-todo', JSON.stringify(updatedCompleted));
+              } else {
+                const updatedTodos = todos.filter((todo) => todo.id !== id);
+                setTodos(updatedTodos);
+                setOldTodos(updatedTodos);
+                await AsyncStorage.setItem('my-todo', JSON.stringify(updatedTodos));
+              }
+            },
+          },
+        ]
+      );
     } catch (error) {
       console.log(error);
     }
@@ -99,30 +142,43 @@ export default function Index() {
   //Function to handle checked and Done todo item
   const handleDone = async (id: number) => {
     try {
-      const newTodos = todos.map((todo) => {
-        if (todo.id === id) {
-          todo.isDone = !todo.isDone; //toggle done and not done
-        }
-        return todo;
+      const todoIndex = todos.findIndex((todo) => todo.id === id);
+      if (todoIndex !== -1) {
+        const updatedTodo = { ...todos[todoIndex], isDone: true };
+        const updatedTodos = todos.filter((todo) => todo.id !== id);
+        setTodos(updatedTodos);
+        setCompletedTodos([...completedTodos, updatedTodo]);
+        setCompletedTodosBackup([...completedTodos, updatedTodo]);
+        await AsyncStorage.setItem("my-todo", JSON.stringify(updatedTodos));
+        await AsyncStorage.setItem("completed-todo", JSON.stringify([...completedTodos, updatedTodo]));
+      } else {
+        const completedIndex = completedTodos.findIndex((todo) => todo.id === id);
+        const updatedTodo = { ...completedTodos[completedIndex], isDone: false };
+        const updatedCompleted = completedTodos.filter((todo) => todo.id !== id);
+        setCompletedTodos(updatedCompleted);
+        setCompletedTodosBackup(updatedCompleted);
+        setTodos([...todos, updatedTodo]);
+        await AsyncStorage.setItem("my-todo", JSON.stringify([...todos, updatedTodo]));
+        await AsyncStorage.setItem("completed-todo", JSON.stringify(updatedCompleted));
       }
-      );
-      await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos)); // update the async storage
-      setTodos(newTodos);
-      setOldTodos(newTodos);
     } catch (error) {
       console.log(error);
     }
   }
 
   const handleSearch = (searchText: string) => {
-    if (searchText == '') {
+    if (searchText === '') {
       setTodos(oldTodos);
-    }
-    else {
-      const filteredTodos = todos.filter((todo) =>
+      setCompletedTodos(completedTodosBackup);
+    } else {
+      const filteredTodos = oldTodos.filter((todo) =>
+        todo.title.toLowerCase().includes(searchText.toLowerCase())
+      );
+      const filteredCompleted = completedTodosBackup.filter((todo) =>
         todo.title.toLowerCase().includes(searchText.toLowerCase())
       );
       setTodos(filteredTodos);
+      setCompletedTodos(filteredCompleted);
     }
   };
 
@@ -153,6 +209,7 @@ export default function Index() {
       }
     }
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -179,7 +236,11 @@ export default function Index() {
               value={searchTodo}
               onChangeText={(text) => setSearchTodo(text)}
               clearButtonMode="always"
-              onBlur={() => setIsSearchActive(false)} // Hide input when focus is lost
+              onBlur={() => {
+                if (searchTodo === '') {
+                  setIsSearchActive(false);
+                }
+              }}
             />
           )}
           <TouchableOpacity onPress={() => { alert("Photo Clicked!") }}>
@@ -190,17 +251,47 @@ export default function Index() {
     
     
         <View style={styles.recentTaskContainer}>
-        <Text style={styles.recentTaskText}> Recent Task</Text>
+        <Text style={styles.recentTaskText}>To Do</Text>
       </View>
-      <FlatList data={[...todos].reverse()} keyExtractor={(item) => item.id.toString()}
+      <FlatList
+        data={[...todos].reverse()}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TodoItem
             todo={item}
             deleteTodo={deleteTodo}
             handleDone={handleDone}
             openEditModal={openEditModal}
+            isCompleted={false}
           />
-        )} />
+        )}
+        style={styles.todoList}
+      />
+
+      <View style={styles.competedTaskContainer}>
+        <View style={styles.completedHeader}>
+          <Text style={styles.competedTaskText}>Completed</Text>
+          <TouchableOpacity onPress={() => setIsCompletedExpanded(!isCompletedExpanded)}>
+            <Text style={styles.showAllText}>{isCompletedExpanded ? 'Hide' : 'Show All'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {isCompletedExpanded && (
+        <FlatList
+          data={completedTodos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TodoItem
+              todo={item}
+              deleteTodo={deleteTodo}
+              handleDone={handleDone}
+              openEditModal={openEditModal}
+              isCompleted={true}
+            />
+          )}
+          style={styles.completedList}
+        />
+      )}
 
       <KeyboardAvoidingView style={styles.addTodoContainer} behavior="padding" keyboardVerticalOffset={15}>
         <TextInput
@@ -255,17 +346,13 @@ export default function Index() {
   );
 }
 
-//separate component for todo item
-const TodoItem = ({
-  todo,
-  deleteTodo,
-  handleDone,
-  openEditModal
-}: {
+// Wrap TodoItem in React.memo for optimization
+const TodoItem = memo(({ todo, deleteTodo, handleDone, openEditModal, isCompleted }: {
   todo: TodoType;
-  deleteTodo: (id: number) => void;
+  deleteTodo: (id: number, isCompleted: boolean) => void;
   handleDone: (id: number) => void;
   openEditModal: (todo: TodoType) => void;
+  isCompleted: boolean;
 }) => {
   return (
     <View style={styles.todoContainer}>
@@ -281,27 +368,26 @@ const TodoItem = ({
           {todo.title}</Text>
       </View>
       <View style={{ flexDirection: 'row', gap: 10 }}>
-        <TouchableOpacity onPress={() => openEditModal(todo)}>
-          <Ionicons name="create-outline" size={22} color={'blue'} />
-        </TouchableOpacity>
+        {!isCompleted && (
+          <TouchableOpacity onPress={() => openEditModal(todo)}>
+            <Ionicons name="create-outline" size={22} color={'blue'} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
-          onPress={() => {
-            deleteTodo(todo.id);
-            alert("Deleted " + todo.title)
-          }}
+          onPress={() => deleteTodo(todo.id, isCompleted)}
         >
           <Ionicons name="trash" size={24} color={'red'} />
         </TouchableOpacity>
       </View>
     </View>
-  )
-}
+  );
+});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 20,
@@ -310,7 +396,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 15,
   },
-  
   searchProfileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -322,21 +407,23 @@ const styles = StyleSheet.create({
   searchInput: {
     fontSize: 16,
     color: 'black',
-    width: 200
+    width: 200,
   },
-  imgProfile:{
-    width: 40, 
-    height: 40, 
-    borderRadius: 20
+  imgProfile: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
-   recentTaskContainer: {
+  recentTaskContainer: {
     marginBottom: 15,
   },
+
   recentTaskText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'black',
   },
+ 
   todoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -349,7 +436,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    width:220
+    width: 220,
   },
   todoText: {
     fontSize: 16,
@@ -360,6 +447,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 14,
+    marginTop: 10,
   },
   addInput: {
     flex: 1,
@@ -368,8 +456,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     backgroundColor: 'white',
-    borderColor: "black",
-    borderWidth:1
+    borderColor: 'black',
+    borderWidth: 1,
   },
   addButton: {
     backgroundColor: 'green',
@@ -403,7 +491,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 20,
-    minHeight: 80, 
+    minHeight: 80,
     textAlignVertical: 'top',
   },
   modalButtons: {
@@ -434,5 +522,33 @@ const styles = StyleSheet.create({
   modalUpdateButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  todoList: {
+    height: '80%', // Fixed height for To Do section
+  },
+  completedList: {
+    backgroundColor: '#4CAF50', // Distinct UI for Completed section
+    padding: 10,
+    marginBottom: 10,
+  },
+  showAllText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  competedTaskContainer: {
+  },
+  competedTaskText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  completedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    marginTop: 15,
+
   },
 });

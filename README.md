@@ -11,3 +11,4 @@ Todo App using Expo in React Native
     Day 5: Add functionality to handle Done todo item and search todo
     Day 6: Add Edit operation using modal popup
     Day 7: Add recent task, resized todo item width, and add input field
+    Day 8: Add completed task section, delete confirmation alert, and completed task backup
