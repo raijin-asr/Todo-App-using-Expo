@@ -5,12 +5,14 @@ import { Checkbox } from 'expo-checkbox';
 import { useEffect, useState, useRef } from "react"; // Import useRef
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { memo } from 'react'; // Import memo for optimization
+import { Menu, MenuItem, MenuDivider } from 'react-native-material-menu'; // Import material menu for minimal UI popover
 
 // custom types for todo items
 type TodoType = {
   id: number;
   title: string;
   isDone: boolean;
+  day: string; // New property to associate tasks with specific days
 }
 
 export default function Index() {
@@ -20,21 +22,25 @@ export default function Index() {
       id: 1,
       title: "Todo 1",
       isDone: false,
+      day: 'S',
     },
     {
       id: 2,
       title: "Todo 2",
       isDone: false,
+      day: 'M',
     },
     {
       id: 3,
       title: "Todo 3",
       isDone: true,
+      day: 'T',
     },
     {
       id: 4,
       title: "Todo 4",
       isDone: false,
+      day: 'W',
     },
   ];
 
@@ -49,6 +55,9 @@ export default function Index() {
   const [isSearchActive, setIsSearchActive] = useState(false); // State to toggle search input
   const searchInputRef = useRef<TextInput>(null); // Create a ref for the TextInput
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(false); // State to toggle Completed section
+  const [menuRef, setMenuRef] = useState<Menu | null>(null); // State to manage menu reference
+  const [isMenuVisible, setMenuVisible] = useState(false); // State to toggle menu visibility
+  const [selectedDay, setSelectedDay] = useState<string>('S'); // Default to Sunday
 
   //check if any data in async storage
   useEffect(() => {
@@ -86,18 +95,19 @@ export default function Index() {
     getCompletedTodos();
   }, []);
 
-  // Function to add a new todo item
+  // Update addTodo to only update count for the selected day
   const addTodo = async () => {
     try {
       const newTodo = {
         id: Math.random(),
         title: todoText,
         isDone: false,
+        day: selectedDay, // Associate new todo with the selected day
       };
-      todos.push(newTodo);
-      setTodos(todos);
-      setOldTodos(todos);
-      await AsyncStorage.setItem("my-todo", JSON.stringify(todos));
+      const updatedTodos = [...todos, newTodo]; // Add new todo to the list
+      setTodos(updatedTodos);
+      setOldTodos(updatedTodos);
+      await AsyncStorage.setItem("my-todo", JSON.stringify(updatedTodos));
       setTodoText("");
       Keyboard.dismiss();
     } catch (error) {
@@ -210,6 +220,62 @@ export default function Index() {
     }
   };
   
+  // Function to delete all tasks in the To Do list
+  const deleteAllTodos = async () => {
+    try {
+      setTodos([]);
+      setOldTodos([]);
+      await AsyncStorage.setItem('my-todo', JSON.stringify([]));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // Function to delete all tasks in the Completed list
+  const deleteAllCompleted = async () => {
+    try {
+      setCompletedTodos([]);
+      setCompletedTodosBackup([]);
+      await AsyncStorage.setItem('completed-todo', JSON.stringify([]));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // Function to show the menu
+  const showMenu = () => {
+    setMenuVisible(true);
+  };
+
+  // Function to hide the menu
+  const hideMenu = () => {
+    setMenuVisible(false);
+  };
+
+  // Function to handle menu option selection
+  const handleMenuOption = (option: string) => {
+    hideMenu();
+    if (option === 'Delete All To Do') {
+      deleteAllTodos();
+    } else if (option === 'Delete All Completed') {
+      deleteAllCompleted();
+    }
+  };
+
+  // Filter tasks based on the selected day
+  const filteredTodos = todos.filter((todo) => todo.day === selectedDay);
+  const filteredCompletedTodos = completedTodos.filter((todo) => todo.day === selectedDay);
+
+  // Map to convert day abbreviation to full date string
+  const dayToDateMap: { [key: string]: string } = {
+    Sun: 'Sunday, 2025',
+    M: 'Monday, 2025',
+    T: 'Tuesday, 2025',
+    W: 'Wednesday, 2025',
+    Th: 'Thursday, 2025',
+    F: 'Friday, 2025',
+    S: 'Saturday, 2025',
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -249,12 +315,49 @@ export default function Index() {
         </View>
       </View>
     
-    
-        <View style={styles.recentTaskContainer}>
-        <Text style={styles.recentTaskText}>To Do</Text>
+      <View style={styles.selectedDateContainer}>
+          <Text style={styles.selectedDateText}>{dayToDateMap[selectedDay]}</Text>
+        </View>
+       
+
+      {/* Day selector */}
+      <View style={styles.daySelectorContainer}>
+        {['Sun', 'M', 'T', 'W', 'Th', 'F', 'S'].map((day, index) => (
+          <TouchableOpacity
+            key={`${day}-${index}`} // Ensure unique keys by appending the index
+            style={[
+              styles.dayToggle,
+              selectedDay === day && styles.selectedDayToggle, // Highlight selected day
+            ]}
+            onPress={() => setSelectedDay(day)}
+          >
+            <Text style={styles.dayText}>{day}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
+
+      <View style={styles.recentTaskContainer}>
+        <View style={styles.headerWithOptions}>
+          <Text style={styles.recentTaskText}>To Do ({filteredTodos.length})</Text> {/* Use filteredTodos for count */}
+          <Menu
+            ref={(ref) => setMenuRef(ref)}
+            visible={isMenuVisible}
+            anchor={
+              <TouchableOpacity onPress={showMenu}>
+                <Ionicons name="ellipsis-horizontal" size={24} color="black" />
+              </TouchableOpacity>
+            }
+            onRequestClose={hideMenu}
+          >
+            <MenuItem onPress={() => handleMenuOption('Delete All To Do')}>Delete All To Do</MenuItem>
+            <MenuDivider />
+            <MenuItem onPress={() => handleMenuOption('Delete All Completed')}>Delete All Completed</MenuItem>
+          </Menu>
+        </View>
+      </View>
+
       <FlatList
-        data={[...todos].reverse()}
+        data={[...filteredTodos].reverse()}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TodoItem
@@ -265,20 +368,20 @@ export default function Index() {
             isCompleted={false}
           />
         )}
+        ListEmptyComponent={<Text style={styles.noTaskText}>No tasks available</Text>} // Show message when no tasks
         style={styles.todoList}
       />
 
       <View style={styles.competedTaskContainer}>
         <View style={styles.completedHeader}>
-          <Text style={styles.competedTaskText}>Completed</Text>
+          <Text style={styles.competedTaskText}>Completed ({filteredCompletedTodos.length})</Text> {/* Use filteredCompletedTodos for count */}
           <TouchableOpacity onPress={() => setIsCompletedExpanded(!isCompletedExpanded)}>
             <Text style={styles.showAllText}>{isCompletedExpanded ? 'Hide' : 'Show All'}</Text>
           </TouchableOpacity>
         </View>
-      </View>
       {isCompletedExpanded && (
         <FlatList
-          data={completedTodos}
+          data={filteredCompletedTodos}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <TodoItem
@@ -289,11 +392,18 @@ export default function Index() {
               isCompleted={true}
             />
           )}
+          ListEmptyComponent={<Text style={{color: "white", textAlign:"center", fontSize:16}}>No tasks available</Text>} // Show message when no tasks
           style={styles.completedList}
         />
       )}
+      </View>
 
-      <KeyboardAvoidingView style={styles.addTodoContainer} behavior="padding" keyboardVerticalOffset={15}>
+
+      <KeyboardAvoidingView
+        style={styles.addTodoContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={100} // Adjust offset to prevent overlap
+      >
         <TextInput
           placeholder="Add New Todo Task"
           value={todoText}
@@ -365,7 +475,8 @@ const TodoItem = memo(({ todo, deleteTodo, handleDone, openEditModal, isComplete
         <Text
           style={[styles.todoText, todo.isDone && { textDecorationLine: 'line-through' }]}
         >
-          {todo.title}</Text>
+          {todo.title}
+        </Text>
       </View>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         {!isCompleted && (
@@ -414,16 +525,47 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  recentTaskContainer: {
+  selectedDateContainer: {
+    padding: 10,
+  },
+  selectedDateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'red',
+  },
+  daySelectorContainer: {
+    flexDirection: 'row',
     marginBottom: 15,
   },
-
+  dayToggle: {
+    padding: 14,
+    marginHorizontal: 4,
+    backgroundColor: '#e0e0e0',
+  },
+  selectedDayToggle: {
+    backgroundColor: 'tomato',
+    borderWidth: 1,
+    borderColor: 'black',
+  },
+  dayText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  recentTaskContainer: {
+    marginBottom: 15,
+   
+  },
+  headerWithOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   recentTaskText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'black',
   },
- 
   todoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -446,8 +588,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    // marginBottom: 14,
     marginTop: 10,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 10,
   },
   addInput: {
     flex: 1,
@@ -465,6 +612,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginLeft: 10,
   },
+
+  //modal for editing todo
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -524,10 +673,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   todoList: {
-    height: '80%', // Fixed height for To Do section
+    height: '60%',
   },
   completedList: {
-    backgroundColor: '#4CAF50', // Distinct UI for Completed section
+    backgroundColor: '#4CAF50',
     padding: 10,
     marginBottom: 10,
   },
@@ -536,6 +685,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   competedTaskContainer: {
+    marginBottom: 80,
   },
   competedTaskText: {
     fontSize: 18,
@@ -549,6 +699,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     padding: 15,
     marginTop: 15,
-
+  },
+  noTaskText: {
+    textAlign: 'center',
+    color: 'black',
+    padding: 20,
+    fontSize: 16,
   },
 });
