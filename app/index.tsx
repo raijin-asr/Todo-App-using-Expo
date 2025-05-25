@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react"; // Import useRef
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { memo } from 'react'; // Import memo for optimization
 import { Menu, MenuItem, MenuDivider } from 'react-native-material-menu'; // Import material menu for minimal UI popover
+import { DrawerActions, useNavigation } from '@react-navigation/native';
 
 // custom types for todo items
 type TodoType = {
@@ -16,6 +17,21 @@ type TodoType = {
 }
 
 export default function Index() {
+
+  const navigation = useNavigation();
+
+  //menu slide panel
+   const [isSlidePanelVisible, setIsSlidePanelVisible] = useState(false);
+
+  const toggleSlidePanel = () => {
+    setIsSlidePanelVisible(!isSlidePanelVisible);
+  };
+
+  const menuItems = [
+    { title: 'Settings', icon: 'settings' },
+    { title: 'About', icon: 'information-circle' },
+  ];
+
   // Sample data for todo items
   const todoData = [
     {
@@ -29,18 +45,6 @@ export default function Index() {
       title: "Todo 2",
       isDone: false,
       day: 'M',
-    },
-    {
-      id: 3,
-      title: "Todo 3",
-      isDone: true,
-      day: 'T',
-    },
-    {
-      id: 4,
-      title: "Todo 4",
-      isDone: false,
-      day: 'W',
     },
   ];
 
@@ -57,7 +61,7 @@ export default function Index() {
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(false); // State to toggle Completed section
   const [menuRef, setMenuRef] = useState<Menu | null>(null); // State to manage menu reference
   const [isMenuVisible, setMenuVisible] = useState(false); // State to toggle menu visibility
-  const [selectedDay, setSelectedDay] = useState<string>('S'); // Default to Sunday
+  const [selectedDay, setSelectedDay] = useState<string>('Sun'); // Default to Sunday
 
   //check if any data in async storage
   useEffect(() => {
@@ -272,7 +276,7 @@ export default function Index() {
     M: 'Monday, 2025',
     T: 'Tuesday, 2025',
     W: 'Wednesday, 2025',
-    Th: 'Thursday, 2025',
+    Thu: 'Thursday, 2025',
     F: 'Friday, 2025',
     S: 'Saturday, 2025',
   };
@@ -280,9 +284,10 @@ export default function Index() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => { alert("Menu Clicked!") }}>
+        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}> {/* Open drawer on hamburger click */}
           <Ionicons name="menu" size={24} color={'black'} />
         </TouchableOpacity>
+
         <View style={styles.searchProfileContainer}>
           <TouchableOpacity
             onPress={() => {
@@ -317,24 +322,24 @@ export default function Index() {
     
       <View style={styles.selectedDateContainer}>
           <Text style={styles.selectedDateText}>{dayToDateMap[selectedDay]}</Text>
-        </View>
        
-
-      {/* Day selector */}
-      <View style={styles.daySelectorContainer}>
-        {['Sun', 'M', 'T', 'W', 'Th', 'F', 'S'].map((day, index) => (
-          <TouchableOpacity
-            key={`${day}-${index}`} // Ensure unique keys by appending the index
-            style={[
-              styles.dayToggle,
-              selectedDay === day && styles.selectedDayToggle, // Highlight selected day
-            ]}
-            onPress={() => setSelectedDay(day)}
-          >
-            <Text style={styles.dayText}>{day}</Text>
-          </TouchableOpacity>
-        ))}
+        {/* Day selector */}
+        <View style={styles.daySelectorContainer}>
+          {['Sun', 'M', 'T', 'W', 'Thu', 'F', 'S'].map((day, index) => (
+            <TouchableOpacity
+              key={`${day}-${index}`} // Ensure unique keys by appending the index
+              style={[
+                styles.dayToggle,
+                selectedDay === day && styles.selectedDayToggle, // Highlight selected day
+              ]}
+              onPress={() => setSelectedDay(day)}
+            >
+              <Text style={styles.dayText}>{day}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
+
 
       <View style={styles.recentTaskContainer}>
         <View style={styles.headerWithOptions}>
@@ -344,7 +349,7 @@ export default function Index() {
             visible={isMenuVisible}
             anchor={
               <TouchableOpacity onPress={showMenu}>
-                <Ionicons name="ellipsis-horizontal" size={24} color="black" />
+                <Ionicons name="ellipsis-horizontal" size={18} color="black" />
               </TouchableOpacity>
             }
             onRequestClose={hideMenu}
@@ -355,31 +360,30 @@ export default function Index() {
           </Menu>
         </View>
       </View>
+        <FlatList
+          data={[...filteredTodos].reverse()}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TodoItem
+              todo={item}
+              deleteTodo={deleteTodo}
+              handleDone={handleDone}
+              openEditModal={openEditModal}
+              isCompleted={false}
+            />
+          )}
+          ListEmptyComponent={<Text style={styles.noTaskText}>No tasks available</Text>} // Show message when no tasks
+          style={styles.todoList}
+        />
 
-      <FlatList
-        data={[...filteredTodos].reverse()}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TodoItem
-            todo={item}
-            deleteTodo={deleteTodo}
-            handleDone={handleDone}
-            openEditModal={openEditModal}
-            isCompleted={false}
-          />
-        )}
-        ListEmptyComponent={<Text style={styles.noTaskText}>No tasks available</Text>} // Show message when no tasks
-        style={styles.todoList}
-      />
-
-      <View style={styles.competedTaskContainer}>
+      <View style={styles.completedTaskContainer}>
         <View style={styles.completedHeader}>
-          <Text style={styles.competedTaskText}>Completed ({filteredCompletedTodos.length})</Text> {/* Use filteredCompletedTodos for count */}
+          <Text style={styles.competedTaskText}>Done ({filteredCompletedTodos.length})</Text> {/* Use filteredCompletedTodos for count */}
           <TouchableOpacity onPress={() => setIsCompletedExpanded(!isCompletedExpanded)}>
             <Text style={styles.showAllText}>{isCompletedExpanded ? 'Hide' : 'Show All'}</Text>
           </TouchableOpacity>
         </View>
-      {isCompletedExpanded && (
+        {isCompletedExpanded && (
         <FlatList
           data={filteredCompletedTodos}
           keyExtractor={(item) => item.id.toString()}
@@ -393,10 +397,11 @@ export default function Index() {
             />
           )}
           ListEmptyComponent={<Text style={{color: "white", textAlign:"center", fontSize:16}}>No tasks available</Text>} // Show message when no tasks
-          style={styles.completedList}
-        />
-      )}
+            style={styles.completedList}
+          />
+        )}
       </View>
+
 
 
       <KeyboardAvoidingView
@@ -481,13 +486,13 @@ const TodoItem = memo(({ todo, deleteTodo, handleDone, openEditModal, isComplete
       <View style={{ flexDirection: 'row', gap: 10 }}>
         {!isCompleted && (
           <TouchableOpacity onPress={() => openEditModal(todo)}>
-            <Ionicons name="create-outline" size={22} color={'blue'} />
+            <Ionicons name="create-outline" size={20} color={'blue'} />
           </TouchableOpacity>
         )}
         <TouchableOpacity
           onPress={() => deleteTodo(todo.id, isCompleted)}
         >
-          <Ionicons name="trash" size={24} color={'red'} />
+          <Ionicons name="trash" size={20} color={'red'} />
         </TouchableOpacity>
       </View>
     </View>
@@ -497,20 +502,58 @@ const TodoItem = memo(({ todo, deleteTodo, handleDone, openEditModal, isComplete
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
     backgroundColor: '#f5f5f5',
   },
   header: {
-    marginBottom: 20,
     justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 15,
   },
+ 
+  slidePanel: {
+    width: '65%',
+    height: '100%',
+    backgroundColor: '#fff',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    justifyContent: 'flex-start',
+    padding: 16,
+  },
+ headerSlidePanel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderBottomColor: "black",
+    borderBottomWidth:1,
+    
+  },
+  slidePanelTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    
+  },
+  closeButton: {
+    padding: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    paddingVertical: 14,
+    gap:10
+  },
+  menuItemText: {
+    marginLeft: 10,
+    fontSize:16
+  },
   searchProfileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 4,
     paddingVertical: Platform.OS == 'ios' ? 12 : 10,
     borderRadius: 10,
     gap: 10,
@@ -525,8 +568,15 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
+
+  // day wise container
   selectedDateContainer: {
     padding: 10,
+    backgroundColor: "#eee8e8",
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 30,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 5,  
   },
   selectedDateText: {
     fontSize: 16,
@@ -535,25 +585,32 @@ const styles = StyleSheet.create({
   },
   daySelectorContainer: {
     flexDirection: 'row',
-    marginBottom: 15,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
   },
   dayToggle: {
-    padding: 14,
-    marginHorizontal: 4,
+    padding: 12,
     backgroundColor: '#e0e0e0',
   },
   selectedDayToggle: {
     backgroundColor: 'tomato',
     borderWidth: 1,
     borderColor: 'black',
+    color: 'white',
+
   },
   dayText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: 'black',
   },
+
+  //recent todo
   recentTaskContainer: {
     marginBottom: 15,
+    paddingLeft: 8,
+    marginTop:14,
    
   },
   headerWithOptions: {
@@ -570,7 +627,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: 'white',
-    padding: 14,
+    padding: 12,
     borderRadius: 10,
     marginBottom: 10,
   },
@@ -579,22 +636,69 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     width: 220,
+    
   },
   todoText: {
-    fontSize: 16,
+    fontSize: 15,
     color: 'black',
+  },
+  todoList: {
+    maxHeight: '50%',
+    backgroundColor: "#eee8e8",
+    padding: 10,
+    borderRadius:10,
+    marginBottom: 10,
+    borderColor: 'black',
+    borderStyle: 'dotted',
+    borderWidth: 2,
+  },
+  completedTaskContainer: {
+  
+  },
+  completedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#4CAF50',
+    padding: 14,
+  },
+  completedList: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    marginBottom: 80,
+    maxHeight:"62%",
+    minHeight:"8%",
+  },
+  showAllText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textDecorationLine: 'underline',
+
+  },  
+  competedTaskText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    
+  },
+  
+  noTaskText: {
+    textAlign: 'center',
+    color: 'black',
+    padding: 20,
+    fontSize: 16,
   },
   addTodoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // marginBottom: 14,
     marginTop: 10,
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 10,
+    padding: 14,
   },
   addInput: {
     flex: 1,
@@ -672,38 +776,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  todoList: {
-    height: '60%',
-  },
-  completedList: {
-    backgroundColor: '#4CAF50',
-    padding: 10,
-    marginBottom: 10,
-  },
-  showAllText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  competedTaskContainer: {
-    marginBottom: 80,
-  },
-  competedTaskText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  completedHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    marginTop: 15,
-  },
-  noTaskText: {
-    textAlign: 'center',
-    color: 'black',
-    padding: 20,
-    fontSize: 16,
-  },
+  
 });
