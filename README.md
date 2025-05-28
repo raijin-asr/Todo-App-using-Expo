@@ -14,3 +14,4 @@ Todo App using Expo in React Native
     Day 8: Add completed task section, delete confirmation alert, and completed task backup
     Day 9: Apply week day wise listing of todo items, filtered todo items based on day selected and its count
     Day10: Implement Slide Panel
+    Day11: Add about and setting page with route navigation
