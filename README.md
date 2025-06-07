@@ -16,3 +16,8 @@ Todo App using Expo in React Native
     Day10: Implement Slide Panel
     Day11: Add about and setting page with route navigation
     Day12: Design about page with appName, appVersion, developer, some contact info and more
+
+SCREENSHOTS:
+
+![my todo appss](https://github.com/user-attachments/assets/8e6a2ef9-7a09-4ed1-aa16-7861863065db)
+Fig 1: Main Screen
