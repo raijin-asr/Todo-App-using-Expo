@@ -11,6 +11,36 @@ export default function SettingsScreen() {
   const [showCompletedByDefault, setShowCompletedByDefault] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(true);
 
+  // Function to handle opening external links
+  const handleLinkPress = (url: string) => {
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        Alert.alert('Error', `Cannot open this URL: ${url}`);
+      }
+    });
+  };
+
+  // Function to handle sensitive actions like deleting all data
+  const handleDeleteAllData = () => {
+    Alert.alert(
+      'Delete All Data',
+      'Are you sure you want to delete all your tasks? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            //logic to delete all data here
+            console.log('All data deleted!');
+            Alert.alert('Success', 'All tasks have been deleted.');
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScrollView style={styles.scrollViewContainer} contentContainerStyle={styles.container}>
@@ -72,6 +102,19 @@ export default function SettingsScreen() {
         </TouchableOpacity>
       </View>
 
+      
+      {/* --- Data Management --- */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Data Management</Text>
+        <TouchableOpacity style={styles.settingItem} onPress={() => { /* Implement backup logic */ Alert.alert('Backup', 'Backup initiated!'); }}>
+          <Text style={styles.settingText}>Backup Data</Text>
+          <Ionicons name="cloud-upload-outline" size={20} color="#888" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.settingItem} onPress={handleDeleteAllData}>
+          <Text style={[styles.settingText, { color: 'red' }]}>Delete All Tasks</Text>
+          <Ionicons name="trash-outline" size={20} color="red" />
+        </TouchableOpacity>
+      </View>
 
       {/* --- Help & Support --- */}
       <View style={styles.section}>
