@@ -1,8 +1,8 @@
 # Todo-App-using-Expo
 
-Todo App using Expo in React Native
+Todo App using Expo(with local storage, no internet needed) in React Native
 
-# Things i've learned and implemented(day wise)
+# Things i've implemented(day wise)
 
     Day 1: Create and Setup TODO app in react native using Expo
     Day 2: Design header, menu and searchBar and styled them
@@ -22,4 +22,4 @@ Todo App using Expo in React Native
 SCREENSHOTS:
 
 ![my todo appss](https://github.com/user-attachments/assets/8e6a2ef9-7a09-4ed1-aa16-7861863065db)
-Fig 1: Main Screen
+</br>Fig 1: Main Screen
