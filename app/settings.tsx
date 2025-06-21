@@ -10,6 +10,8 @@ export default function SettingsScreen() {
   const [areNotificationsEnabled, setAreNotificationsEnabled] = useState(true);
   const [showCompletedByDefault, setShowCompletedByDefault] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(true);
+  const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
+
 
   // Function to handle opening external links
   const handleLinkPress = (url: string) => {
@@ -68,7 +70,16 @@ export default function SettingsScreen() {
       {/* --- General Settings --- */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>General</Text>
-     
+         <View style={styles.settingItem}>
+          <Text style={styles.settingText}>Dark Mode</Text>
+          <Switch
+            trackColor={{ false: '#767577', true: '#81b0ff' }}
+            thumbColor={isDarkModeEnabled ? '#f5dd4b' : '#f4f3f4'}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={setIsDarkModeEnabled}
+            value={isDarkModeEnabled}
+          />
+        </View>
         <View style={styles.settingItem}>
           <Text style={styles.settingText}>Notifications</Text>
           <Switch
@@ -119,7 +130,7 @@ export default function SettingsScreen() {
       {/* --- Help & Support --- */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Help & Support</Text>
-        <TouchableOpacity style={styles.settingItem}>
+        <TouchableOpacity style={styles.settingItem}  onPress={() => handleLinkPress('')}>
           <Text style={styles.settingText}>Frequently Asked Questions</Text>
           <Ionicons name="help-circle-outline" size={20} color="#888" />
         </TouchableOpacity>

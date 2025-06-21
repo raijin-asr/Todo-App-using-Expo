@@ -40,7 +40,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       </TouchableOpacity>
       <View style={styles.flexSpacer} />
       <View style={styles.drawerFooter}>
-        <Text style={styles.drawerFooterText}>Developed with ❣️ by Raijin</Text>
+        <Text style={styles.drawerFooterText}>Developed with ❣️ by <Text style={{fontWeight: 'bold', fontSize:26}}>Raijin</Text></Text>
       </View>
     </DrawerContentScrollView>
   );
