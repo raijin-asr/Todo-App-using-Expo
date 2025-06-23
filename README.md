@@ -20,7 +20,16 @@ Todo App using Expo(with local storage, no internet needed) in React Native
     Day14: Add function to handle delete and links and UI for data management
     Day15: Setup dark mode toggle button(UI only), and make Raijin text bold for readability, and add some screenshots
 
-SCREENSHOTS:
+<h2>SCREENSHOTS:</h2>
 
 ![my todo appss](https://github.com/user-attachments/assets/8e6a2ef9-7a09-4ed1-aa16-7861863065db)
 </br>Fig 1: Main Screen
+
+![todo6(Add new Task)](https://github.com/user-attachments/assets/d44c0591-c0c0-49d0-9c00-3085f155f6df)
+</br>Fig 2: Add New Task
+
+![todo2(Slide Panel)](https://github.com/user-attachments/assets/645f52bf-04cc-4878-84c0-7a59cb9a68bd)
+</br>Fig 3: Slide Panel
+
+![todo5(Delete Feature)](https://github.com/user-attachments/assets/b0bd09e2-19a7-4c4e-8b5b-57b1047a6c84)
+</br>Fig 4: Delete Feature
