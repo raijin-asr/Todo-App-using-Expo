@@ -12,6 +12,16 @@ export default function SettingsScreen() {
   const [confirmDelete, setConfirmDelete] = useState(true);
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
 
+  // Dynamic styles for dark mode
+  const darkStyles = isDarkModeEnabled ? {
+    scrollViewContainer: { backgroundColor: '#181818' },
+    container: { backgroundColor: '#181818' },
+    section: { backgroundColor: '#232323', shadowColor: '#000' },
+    sectionTitle: { color: '#fff', borderBottomColor: '#333' },
+    settingItem: { borderBottomColor: '#222' },
+    settingText: { color: '#fff' },
+    settingValue: { color: '#aaa' },
+  } : {};
 
   // Function to handle opening external links
   const handleLinkPress = (url: string) => {
@@ -45,33 +55,32 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.scrollViewContainer} contentContainerStyle={styles.container}>
-
+    <ScrollView style={[styles.scrollViewContainer, darkStyles.scrollViewContainer]} contentContainerStyle={[styles.container, darkStyles.container]}>
       {/* --- Account Settings --- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
+      <View style={[styles.section, darkStyles.section]}>
+        <Text style={[styles.sectionTitle, darkStyles.sectionTitle]}>Account</Text>
         <TouchableOpacity style={styles.settingItem}>
           <View style={styles.settingTextContainer}>
-            <Text style={styles.settingText}>Username</Text>
-            <Text style={styles.settingValue}>Raijin</Text> 
+            <Text style={[styles.settingText, darkStyles.settingText]}>Username</Text>
+            <Text style={[styles.settingValue, darkStyles.settingValue]}>Raijin</Text> 
           </View>
           <Ionicons name="chevron-forward" size={20} color="#888" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Change Password</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Change Password</Text>
           <Ionicons name="chevron-forward" size={20} color="#888" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Logout</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Logout</Text>
           <Ionicons name="log-out-outline" size={20} color="#888" />
         </TouchableOpacity>
       </View>
 
       {/* --- General Settings --- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>General</Text>
-         <View style={styles.settingItem}>
-          <Text style={styles.settingText}>Dark Mode</Text>
+      <View style={[styles.section, darkStyles.section]}>
+        <Text style={[styles.sectionTitle, darkStyles.sectionTitle]}>General</Text>
+        <View style={styles.settingItem}>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Dark Mode</Text>
           <Switch
             trackColor={{ false: '#767577', true: '#81b0ff' }}
             thumbColor={isDarkModeEnabled ? '#f5dd4b' : '#f4f3f4'}
@@ -81,7 +90,7 @@ export default function SettingsScreen() {
           />
         </View>
         <View style={styles.settingItem}>
-          <Text style={styles.settingText}>Notifications</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Notifications</Text>
           <Switch
             onValueChange={setAreNotificationsEnabled}
             value={areNotificationsEnabled}
@@ -90,35 +99,34 @@ export default function SettingsScreen() {
       </View>
 
       {/* --- Todo-Specific Settings --- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Todo Options</Text>
+      <View style={[styles.section, darkStyles.section]}>
+        <Text style={[styles.sectionTitle, darkStyles.sectionTitle]}>Todo Options</Text>
         <View style={styles.settingItem}>
-          <Text style={styles.settingText}>Show Completed Tasks by Default</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Show Completed Tasks by Default</Text>
           <Switch
             onValueChange={setShowCompletedByDefault}
             value={showCompletedByDefault}
           />
         </View>
         <View style={styles.settingItem}>
-          <Text style={styles.settingText}>Confirm Deletion</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Confirm Deletion</Text>
           <Switch
             onValueChange={setConfirmDelete}
             value={confirmDelete}
           />
         </View>
         <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Default New Task Day</Text>
-          <Text style={styles.settingValue}>Today</Text> {/* Example: This could open a picker */}
+          <Text style={[styles.settingText, darkStyles.settingText]}>Default New Task Day</Text>
+          <Text style={[styles.settingValue, darkStyles.settingValue]}>Today</Text> {/* Example: This could open a picker */}
           <Ionicons name="chevron-forward" size={20} color="#888" />
         </TouchableOpacity>
       </View>
 
-      
       {/* --- Data Management --- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data Management</Text>
+      <View style={[styles.section, darkStyles.section]}>
+        <Text style={[styles.sectionTitle, darkStyles.sectionTitle]}>Data Management</Text>
         <TouchableOpacity style={styles.settingItem} onPress={() => { /* Implement backup logic */ Alert.alert('Backup', 'Backup initiated!'); }}>
-          <Text style={styles.settingText}>Backup Data</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Backup Data</Text>
           <Ionicons name="cloud-upload-outline" size={20} color="#888" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem} onPress={handleDeleteAllData}>
@@ -128,14 +136,14 @@ export default function SettingsScreen() {
       </View>
 
       {/* --- Help & Support --- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Help & Support</Text>
+      <View style={[styles.section, darkStyles.section]}>
+        <Text style={[styles.sectionTitle, darkStyles.sectionTitle]}>Help & Support</Text>
         <TouchableOpacity style={styles.settingItem}  onPress={() => handleLinkPress('')}>
-          <Text style={styles.settingText}>Frequently Asked Questions</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Frequently Asked Questions</Text>
           <Ionicons name="help-circle-outline" size={20} color="#888" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem} onPress={() => Linking.openURL('')}>
-          <Text style={styles.settingText}>Contact Support</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Contact Support</Text>
           <Ionicons name="chatbox-ellipses-outline" size={20} color="#888" />
         </TouchableOpacity>
       </View>

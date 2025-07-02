@@ -19,6 +19,7 @@ Todo App using Expo(with local storage, no internet needed) in React Native
     Day13: Made Setting page with account setting, general setting, contact info and FAQ
     Day14: Add function to handle delete and links and UI for data management
     Day15: Setup dark mode toggle button(UI only), and make Raijin text bold for readability, and add some screenshots
+    Day16: Add dark mode functionality in settings page
 
 <h2>SCREENSHOTS:</h2>
 
