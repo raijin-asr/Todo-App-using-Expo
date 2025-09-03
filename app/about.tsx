@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Linking, Platform, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 
 export default function AboutScreen() {
+  const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(false);
+
   const appVersion = '1.0.0'; 
   const developerName = 'Raijin';
   const supportEmail = 'support@raijintodo.com';
@@ -20,6 +22,12 @@ export default function AboutScreen() {
     });
   };
 
+  const darkStyles = isDarkModeEnabled ? {
+    container: { backgroundColor: '#181818' },
+    title: { color: '#fff' },
+    text: { color: '#aaa' },
+  } : {};
+
   return (
     <ScrollView style={styles.scrollViewContainer} contentContainerStyle={styles.container}>
       {/* App Logo and Name */}
@@ -29,13 +37,13 @@ export default function AboutScreen() {
         resizeMode="contain"
       />
       
-      <Text style={styles.appName}>Raijin Todo</Text>
-      <Text style={styles.appVersion}>Version {appVersion}</Text>
+      <Text style={[styles.appName, darkStyles.title]}>Raijin Todo</Text>
+      <Text style={[styles.appVersion, darkStyles.text]}>Version {appVersion}</Text>
 
       {/* About Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About This App</Text>
-        <Text style={styles.sectionText}>
+        <Text style={[styles.sectionText, darkStyles.text]}>
           I developed it so that i can install it on my phone without internt connection.
         </Text>
       </View>
@@ -45,11 +53,11 @@ export default function AboutScreen() {
         <Text style={styles.sectionTitle}>Get in Touch</Text>
         <TouchableOpacity style={styles.contactItem} onPress={() => Linking.openURL(`mailto:${supportEmail}`)}>
           <Ionicons name="mail-outline" size={20} color="#333" style={styles.contactIcon} />
-          <Text style={styles.contactText}>{supportEmail}</Text>
+          <Text style={[styles.contactText, darkStyles.text]}>{supportEmail}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.contactItem} onPress={() => handleLinkPress(websiteUrl)}>
           <Ionicons name="globe-outline" size={20} color="#333" style={styles.contactIcon} />
-          <Text style={styles.contactText}>Visit Our Website</Text>
+          <Text style={[styles.contactText, darkStyles.text]}>Visit Our Website</Text>
         </TouchableOpacity>
         {/* Add more contact options like social media */}
       </View>
@@ -58,13 +66,24 @@ export default function AboutScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Legal & Privacy</Text>
         <TouchableOpacity onPress={() => handleLinkPress(privacyPolicyUrl)}>
-          <Text style={styles.linkText}>Privacy Policy</Text>
+          <Text style={[styles.linkText, darkStyles.text]}>Privacy Policy</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handleLinkPress(termsOfServiceUrl)}>
-          <Text style={styles.linkText}>Terms of Service</Text>
+          <Text style={[styles.linkText, darkStyles.text]}>Terms of Service</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Dark Mode Toggle */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24 }}>
+        <Text style={[{ marginRight: 10 }, darkStyles.text]}>Dark Mode</Text>
+        <Switch
+          trackColor={{ false: '#767577', true: '#81b0ff' }}
+          thumbColor={isDarkModeEnabled ? '#f5dd4b' : '#f4f3f4'}
+          ios_backgroundColor="#3e3e3e"
+          onValueChange={setIsDarkModeEnabled}
+          value={isDarkModeEnabled}
+        />
+      </View>
   
       {/* Footer */}
       <View style={styles.footer}>
