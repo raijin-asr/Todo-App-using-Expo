@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Linking, Platform, Switch } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Linking, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 
 export default function AboutScreen() {
@@ -30,7 +30,6 @@ export default function AboutScreen() {
 
   return (
     <ScrollView style={styles.scrollViewContainer} contentContainerStyle={styles.container}>
-      {/* App Logo and Name */}
       <Image
         source={require('../assets/images/ameer.jpeg')} 
         style={styles.appLogo}
@@ -59,7 +58,6 @@ export default function AboutScreen() {
           <Ionicons name="globe-outline" size={20} color="#333" style={styles.contactIcon} />
           <Text style={[styles.contactText, darkStyles.text]}>Visit Our Website</Text>
         </TouchableOpacity>
-        {/* Add more contact options like social media */}
       </View>
 
       {/* Legal Section */}
@@ -101,13 +99,13 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     alignItems: 'center',
-    paddingBottom: 40, // Add some padding at the bottom for scroll
+    paddingBottom: 40, 
   },
   appLogo: {
     width: 100,
     height: 100,
     marginBottom: 10,
-    borderRadius: 20, // Example: if your logo is a square
+    borderRadius: 20, 
   },
   appName: {
     fontSize: 28,
@@ -130,7 +128,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 3, // For Android shadow
+    elevation: 3, 
   },
   sectionTitle: {
     fontSize: 20,
@@ -156,7 +154,7 @@ const styles = StyleSheet.create({
   },
   contactText: {
     fontSize: 16,
-    color: 'blue', // Make it look like a link
+    color: 'blue', 
     textDecorationLine: 'underline',
   },
   linkText: {

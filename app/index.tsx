@@ -106,9 +106,9 @@ export default function Index() {
         id: Math.random(),
         title: todoText,
         isDone: false,
-        day: selectedDay, // Associate new todo with the selected day
+        day: selectedDay,
       };
-      const updatedTodos = [...todos, newTodo]; // Add new todo to the list
+      const updatedTodos = [...todos, newTodo]; 
       setTodos(updatedTodos);
       setOldTodos(updatedTodos);
       await AsyncStorage.setItem("my-todo", JSON.stringify(updatedTodos));
@@ -301,7 +301,7 @@ export default function Index() {
           </TouchableOpacity>
           {isSearchActive && (
             <TextInput
-              ref={searchInputRef} // Attach the ref to the TextInput
+              ref={searchInputRef}
               style={styles.searchInput}
               placeholder="Search"
               value={searchTodo}
@@ -327,10 +327,10 @@ export default function Index() {
         <View style={styles.daySelectorContainer}>
           {['Sun', 'M', 'T', 'W', 'Thu', 'F', 'S'].map((day, index) => (
             <TouchableOpacity
-              key={`${day}-${index}`} // Ensure unique keys by appending the index
+              key={`${day}-${index}`} 
               style={[
                 styles.dayToggle,
-                selectedDay === day && styles.selectedDayToggle, // Highlight selected day
+                selectedDay === day && styles.selectedDayToggle, 
               ]}
               onPress={() => setSelectedDay(day)}
             >
@@ -378,7 +378,7 @@ export default function Index() {
 
       <View style={styles.completedTaskContainer}>
         <View style={styles.completedHeader}>
-          <Text style={styles.competedTaskText}>Done ({filteredCompletedTodos.length})</Text> {/* Use filteredCompletedTodos for count */}
+          <Text style={styles.competedTaskText}>Done ({filteredCompletedTodos.length})</Text> 
           <TouchableOpacity onPress={() => setIsCompletedExpanded(!isCompletedExpanded)}>
             <Text style={styles.showAllText}>{isCompletedExpanded ? 'Hide' : 'Show All'}</Text>
           </TouchableOpacity>
@@ -396,7 +396,7 @@ export default function Index() {
               isCompleted={true}
             />
           )}
-          ListEmptyComponent={<Text style={{color: "white", textAlign:"center", fontSize:16}}>No tasks available</Text>} // Show message when no tasks
+          ListEmptyComponent={<Text style={{color: "white", textAlign:"center", fontSize:16}}>No tasks available</Text>} 
             style={styles.completedList}
           />
         )}
@@ -407,7 +407,7 @@ export default function Index() {
       <KeyboardAvoidingView
         style={styles.addTodoContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={100} // Adjust offset to prevent overlap
+        keyboardVerticalOffset={100} 
       >
         <TextInput
           placeholder="Add New Todo Task"
@@ -415,9 +415,9 @@ export default function Index() {
           onChangeText={(text) => setTodoText(text)}
           style={styles.addInput}
           autoCorrect={false}
-          multiline={true} // Enable multi-line input
-          numberOfLines={4} // Suggest an initial number of lines
-          textAlignVertical="top" // Start text from the top
+          multiline={true} 
+          numberOfLines={4} 
+          textAlignVertical="top" 
         />
         <TouchableOpacity style={styles.addButton} onPress={() => addTodo()}>
           <Ionicons name="add" size={32} color={'white'} />
@@ -439,9 +439,9 @@ export default function Index() {
               onChangeText={(text) =>
                 setTodoToEdit((prev) => (prev ? { ...prev, title: text } : prev))
               }
-              multiline={true} // Enable multi-line input
-              numberOfLines={4} // Suggest an initial number of lines
-              textAlignVertical="top" // Start text from the top
+              multiline={true} 
+              numberOfLines={4} 
+              textAlignVertical="top"
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity

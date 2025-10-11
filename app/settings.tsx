@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Linking, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // If you need navigation within settings
+import { useNavigation } from '@react-navigation/native'; 
 
 export default function SettingsScreen() {
   const navigation = useNavigation(); // Hook for navigation
@@ -139,7 +139,7 @@ export default function SettingsScreen() {
       <View style={[styles.section, darkStyles.section]}>
         <Text style={[styles.sectionTitle, darkStyles.sectionTitle]}>Help & Support</Text>
         <TouchableOpacity style={styles.settingItem}  onPress={() => handleLinkPress('')}>
-          <Text style={[styles.settingText, darkStyles.settingText]}>Frequently Asked Questions</Text>
+          <Text style={[styles.settingText, darkStyles.settingText]}>Frequently Asked Questions(FAQ)</Text>
           <Ionicons name="help-circle-outline" size={20} color="#888" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem} onPress={() => Linking.openURL('')}>
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0', // Lighter line between items
+    borderBottomColor: '#f0f0f0', 
   },
 
   'settingItem:last-child': {

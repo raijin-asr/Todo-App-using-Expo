@@ -75,17 +75,17 @@ export default function Layout() {
     >
       <Drawer.Screen name="Home" component={Index} 
         options={{
-          headerShown: false, // Hide header ONLY for the Home screen
+          headerShown: false, 
         }}/>
       <Drawer.Screen name="Settings" component={SettingsScreen} 
           options={{
           title: 'Settings', 
-          headerLeft: undefined, // Explicitly remove it if it was implicitly added
+          headerLeft: undefined, 
         }}/>
       <Drawer.Screen name="About" component={AboutScreen} 
         options={{
             title: 'About', 
-            headerLeft: undefined, // Explicitly remove it if it was implicitly added
+            headerLeft: undefined, 
         }}/>
     </Drawer.Navigator>
   );
